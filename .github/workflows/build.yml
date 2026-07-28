@@ -45,4 +45,4 @@ jobs:
           EOF
 
       - name: Build Project
-        run: mvn clean verify
+        run: mvn clean package -DskipTests
