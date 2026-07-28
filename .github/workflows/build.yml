@@ -15,7 +15,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: read
+      packages: write
 
     steps:
 
@@ -43,6 +43,19 @@ jobs:
             </servers>
           </settings>
           EOF
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build Docker Image
+        run: |
+          docker build -t ghcr.io/imrudra7/auth-service:latest .
+
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/imrudra7/auth-service:latest
       - name: Build Project
         run: mvn clean package -DskipTests
