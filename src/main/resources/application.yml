@@ -1,0 +1,75 @@
+server:
+  port: 8082   # auth service ka port
+
+  
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://auth-db:5432/auth_db
+    username: auth_user
+    password: auth123
+    driver-class-name: org.postgresql.Driver
+   
+  jpa:
+    hibernate:
+      ddl-auto: update   # Hibernate DB manage karega
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: auth
+
+  sql:
+    init:
+      mode: never
+  
+  
+  data:
+    redis:
+      port: ${SPRING_REDIS_PORT:6379}
+      host: ${SPRING_REDIS_HOST:localhost}   
+logging:
+  file:
+   name: logs/auth-service.log
+  level:
+      root: INFO	    #		    FATAL		    INFO		    OFF		    TRACE		    WARN  DEBUG
+      org.hibernate.SQL: OFF
+      org.hibernate.type.descriptor.sql.BasicBinder: OFF
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [MaithilArt: %X{pulse}] %-5level %logger{36} - %msg%n"
+
+jwt:
+  secret: thisisaverybigsecuritykeywith32bitcharacters-thatwillbeusedinmyapplication.
+  expiration-minutes: 15
+gateway:
+  secret: ${GATEWAY_SECRET:maithilart-gateway-secret-code-is-rudra}
+internal:
+  secret: ${GATEWAY_SECRET:maithilart-gateway-secret-code-is-rudra}
+
+communicator:
+  secret: ${COMMUNICATOR_SECRET:MaithilArt_Default_Secret_786}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - health
+        - info
+        - metrics
+        - prometheus
+  endpoint:
+    health:
+      show-details: always
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+maithil.observability.application:
+ maithil-art
+maithil.observability.environment:
+ dev
+management.metrics.distribution.percentiles-histogram.http.server.requests: true
