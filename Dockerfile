@@ -1,5 +1,5 @@
 # STAGE 1: Build the JAR using Maven
-FROM maven:3.9.6-eclipse-temurin-21-jammy AS build
+FROM maven:3.9.11-eclipse-temurin-21 AS build
 
 ARG GITHUB_USERNAME
 ARG GITHUB_TOKEN
@@ -27,7 +27,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # STAGE 2: Create the final small image
-FROM eclipse-temurin:21-jdk-jammy
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Copy ONLY the JAR from the build stage
