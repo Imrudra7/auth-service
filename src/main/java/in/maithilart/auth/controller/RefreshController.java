@@ -7,11 +7,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import in.maithilart.auth.config.AuthCookieProperties;
 import in.maithilart.auth.entity.RefreshToken;
 import in.maithilart.auth.entity.User;
 import in.maithilart.auth.security.JwtService;
@@ -26,12 +27,15 @@ public class RefreshController {
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
     private final IUserService userService;
+    private final AuthCookieProperties authCookieProperties;
 
     public RefreshController(RefreshTokenService refreshTokenService,
-                             JwtService jwtService, IUserService userService) {
+                             JwtService jwtService, IUserService userService,
+                             AuthCookieProperties authCookieProperties) {
         this.refreshTokenService = refreshTokenService;
         this.jwtService = jwtService;
         this.userService = userService;
+        this.authCookieProperties = authCookieProperties;
     }
 
     @PostMapping("/admin/refresh") 
@@ -69,21 +73,8 @@ public class RefreshController {
         String newAccessToken = jwtService.generateToken(user.getId().toString(), user.getEmail(),user.getFullName(), roleNames);
 
         
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", newAccessToken)
-              .httpOnly(true)
-              .secure(false) // Dev: false, Prod: true
-              .path("/")
-              .maxAge(15 * 60) // 15 Mins
-              .sameSite("Lax")
-              .build();
-
-      ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", newRefreshTokenStr)
-              .httpOnly(true)
-              .secure(false)
-              .path("/")
-              .maxAge(7 * 24 * 60 * 60) // 7 Days
-              .sameSite("Lax")
-              .build();
+        ResponseCookie accessCookie = authCookieProperties.accessToken(newAccessToken);
+        ResponseCookie refreshCookie = authCookieProperties.refreshToken(newRefreshTokenStr);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())

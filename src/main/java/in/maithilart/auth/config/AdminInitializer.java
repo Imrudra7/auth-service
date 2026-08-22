@@ -4,6 +4,7 @@ import in.maithilart.auth.entity.User;
 import in.maithilart.auth.repository.UserRepository;
 import in.maithilart.auth.entity.Role; // Apna sahi enum path check kar lena
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,11 @@ import java.util.Set;
 @Component
 public class AdminInitializer implements CommandLineRunner {
 
+	@Value("${admin.email}")
+	private  String adMail;
+	@Value("${admin.key}")
+	private  String adPass;
+	
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -25,7 +31,7 @@ public class AdminInitializer implements CommandLineRunner {
     @Override
     @Transactional // Taaki user aur roles ek saath save hon
     public void run(String... args) {
-        String adminEmail = "rudra@gmail.com";
+        String adminEmail = adMail;
 
         // 1. Pehle check karo ki admin exists karta hai ya nahi
         if (!userRepository.existsByEmail(adminEmail)) {
@@ -35,7 +41,7 @@ public class AdminInitializer implements CommandLineRunner {
             admin.setEmail(adminEmail);
             
             // 2. Password: 'admin123' (Ise baad mein dashboard se change kar lena)
-            admin.setPassword(passwordEncoder.encode("rudra123"));
+            admin.setPassword(passwordEncoder.encode(adPass));
             
             admin.setEnabled(true);
             admin.setAccountLocked(false);

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import in.maithilart.auth.config.AuthCookieProperties;
 import in.maithilart.auth.dto.LogoutRequest;
 import in.maithilart.auth.entity.RefreshToken;
 import in.maithilart.auth.service.implementation.AuthService;
@@ -18,11 +19,14 @@ public class LogoutController {
 
     private final RefreshTokenService refreshTokenService;
     private final AuthService authService;
+    private final AuthCookieProperties authCookieProperties;
 
     public LogoutController(RefreshTokenService refreshTokenService,
-    		AuthService authService) {
+    		AuthService authService,
+    		AuthCookieProperties authCookieProperties) {
         this.refreshTokenService = refreshTokenService;
         this.authService = authService;
+        this.authCookieProperties = authCookieProperties;
     }
 
 	
@@ -44,11 +48,9 @@ public class LogoutController {
         }
 
         // 3. Browser se Cookies clear karo
-        ResponseCookie clearAccess = ResponseCookie.from("accessToken", "")
-                .httpOnly(true).path("/").maxAge(0).build();
-                
-        ResponseCookie clearRefresh = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true).path("/").maxAge(0).build();
+        ResponseCookie clearAccess = authCookieProperties.clearAccessToken();
+                 
+        ResponseCookie clearRefresh = authCookieProperties.clearRefreshToken();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, clearAccess.toString())

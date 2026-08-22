@@ -28,7 +28,7 @@ public class RefreshTokenService implements ITokenService {
     @Transactional
     @Override
     public RefreshToken create(UUID userId) {
-    	log.debug("Creating new Refresh token with userId: {}",userId);
+    	log.debug("Creating new refresh token for userId={}", userId);
         RefreshToken token = new RefreshToken();
         token.setToken(UUID.randomUUID().toString());
         token.setUserId(userId);
@@ -43,10 +43,10 @@ public class RefreshTokenService implements ITokenService {
     @Override
     public RefreshToken validate(String tokenValue) {
 
-    	log.debug("Validating the refresh token : {}",tokenValue);
+    	log.debug("Validating refresh token");
         RefreshToken token = repository.findByToken(tokenValue)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-    	log.debug("Token was not invalid. : {}",tokenValue);
+    	log.debug("Refresh token exists");
 
         if (token.isRevoked()) {
         	// 🚨 REUSE ATTACK DETECTED
@@ -54,12 +54,12 @@ public class RefreshTokenService implements ITokenService {
                     .revokeAllByUserId(token.getUserId());
             throw new RuntimeException("Refresh token revoked");
         }
-    	log.debug("Token was not revoked : {}",tokenValue);
+    	log.debug("Refresh token is not revoked");
 
         if (token.getExpiresAt().isBefore(Instant.now())) {
             throw new RuntimeException("Refresh token expired");
         }
-    	log.debug("Success!! Token was not expired : {}",tokenValue);
+    	log.debug("Refresh token is not expired");
 
         return token;
     }

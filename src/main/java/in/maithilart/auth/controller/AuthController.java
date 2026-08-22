@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
+import in.maithilart.auth.config.AuthCookieProperties;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -36,10 +38,12 @@ public class AuthController {
 
 	private final IAuthService authService;
 	private final IUserService userService;
+	private final AuthCookieProperties authCookieProperties;
 
-	public AuthController(IAuthService authService, IUserService userService) {
+	public AuthController(IAuthService authService, IUserService userService, AuthCookieProperties authCookieProperties) {
 		this.authService = authService;
 		this.userService = userService;
+		this.authCookieProperties = authCookieProperties;
 	}
 
 	@PublishMaithilEvent(eventType = MaithilConstants.USER_CREATED, entityType = "USER", entityIdField = "userId")
@@ -51,43 +55,34 @@ public class AuthController {
 	}
 	@PostMapping("/login")
 	public ResponseEntity<?> userLogin(@RequestBody LoginRequest request) {
-		log.debug("inside userlogin :" + request.getEmail());
+		log.debug("User login attempt");
 		return internalLogin(request, "USER");
 	}
 
 	@PostMapping("/admin/login")
 	public ResponseEntity<?> adminLogin(@RequestBody LoginRequest request) {
-		log.debug("inside adminlogin :" + request.getEmail());
-		System.out.println("inside adminlogin :" + request.getEmail());
+		log.debug("Admin login attempt");
 		return internalLogin(request, "ADMIN");
 	}
 
 	private ResponseEntity<?> internalLogin(LoginRequest request, String requiredRole) {
-		log.debug("inside internallogin :" + request.getEmail() + " for role:" + requiredRole);
-		System.out.println("inside internallogin :" + request.getEmail() + " for role:" + requiredRole);
+		log.debug("Processing login for role={}", requiredRole);
 
 		LoginResponse response = authService.login(request);
-		log.debug("after internallogin service :" + response.getRoles() + " for role:" + requiredRole);
-		System.out.println("after internallogin service :" + response.getRoles() + " for role:" + requiredRole);
+		log.debug("Login roles resolved for role={}", requiredRole);
 		Set<String> roles = response.getRoles();
 
 		if (!roles.contains(requiredRole)) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "ACCESS_DENIED", "message",
 					"Bhai, is area mein " + requiredRole + " hi allowed hain!"));
 		}
-		ResponseCookie accessCookie = createCookie("accessToken", response.getAccessToken(), 15 * 60);
-		ResponseCookie refreshCookie = createCookie("refreshToken", response.getRefreshToken(), 7 * 24 * 60 * 60);
+		ResponseCookie accessCookie = authCookieProperties.accessToken(response.getAccessToken());
+		ResponseCookie refreshCookie = authCookieProperties.refreshToken(response.getRefreshToken());
 
 		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString())
 				.header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
 				.body(Map.of("status", "success", "roles", roles, "message", "Login Successful"));
 
-	}
-
-	private ResponseCookie createCookie(String name, String value, long maxAge) {
-		return ResponseCookie.from(name, value).httpOnly(true).secure(false) // Production mein true karna padega
-																				// (HTTPS)
-				.path("/").maxAge(maxAge).sameSite("Lax").build();
 	}
 
 	@GetMapping("/api/secure")
