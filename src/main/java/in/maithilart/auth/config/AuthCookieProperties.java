@@ -41,7 +41,32 @@ public class AuthCookieProperties {
         return create("refreshToken", "", 0);
     }
 
-    private ResponseCookie create(String name, String value, long maxAgeSeconds) {
+    public boolean isHttpOnly() {
+        return httpOnly;
+    }
+
+    public boolean isSecure() {
+        return secure;
+    }
+
+    public String getSameSite() {
+        return sameSite;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public long getAccessTokenMaxAgeSeconds() {
+        return accessTokenMaxAgeSeconds;
+    }
+
+    public long getRefreshTokenMaxAgeSeconds() {
+        return refreshTokenMaxAgeSeconds;
+    }
+
+    @SuppressWarnings("null")
+	private ResponseCookie create(String name, String value, long maxAgeSeconds) {
         return ResponseCookie.from(name, value)
                 .httpOnly(httpOnly)
                 .secure(secure)

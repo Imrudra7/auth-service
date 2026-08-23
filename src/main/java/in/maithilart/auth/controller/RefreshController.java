@@ -47,6 +47,7 @@ public class RefreshController {
     @PostMapping("/refresh") 
     public ResponseEntity<?> userRefresh(
             @CookieValue(name = "refreshToken", required = false) String oldRefreshToken) {
+    	log.info("REFRESHING TOKEN for user");
         return internalRefresh(oldRefreshToken, "USER");
     }
 
